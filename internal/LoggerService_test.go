@@ -65,7 +65,7 @@ func TestStartStop(t *testing.T) {
 // Test logging of a published TD
 func TestLogTD(t *testing.T) {
 	logrus.Infof("--- TestLogTD ---")
-	thingID1 := "thing1"
+	thingID1 := "urn:zone1:thing1:hello"
 	clientID := "TestRecordMessage"
 	setup()
 
@@ -80,8 +80,46 @@ func TestLogTD(t *testing.T) {
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	td := td.CreateTD(thingID1)
-	client.PublishTD(thingID1, td)
+	tdObj := td.CreateTD(thingID1)
+	client.PublishTD(thingID1, tdObj)
+
+	event := td.CreateEvent("title", "Thing event")
+	client.PublishEvent(thingID1, event)
+
+	time.Sleep(1 * time.Second)
+	client.Stop()
+
+	assert.NoError(t, err)
+	svc.Stop()
+	teardown()
+}
+
+// Test logging of a specific ID
+func TestLogSpecificIDs(t *testing.T) {
+	logrus.Infof("--- TestLogSpecificIDs ---")
+	thingID1 := "urn:zone1:thing1"
+	thingID2 := "urn:zone1:thing2"
+	clientID := "TestRecordMessage"
+	setup()
+
+	svc := internal.WostLogger{}
+	loggerConfig.ThingIDs = []string{thingID2}
+	err := svc.Start(hubConfig, loggerConfig)
+	// create a thing to publish with
+	hostPort := fmt.Sprintf("%s:%d", hubConfig.Messenger.Address, hubConfig.Messenger.Port)
+	caCertFile := path.Join(hubConfig.Messenger.CertFolder, certsetup.CaCertFile)
+	credentials := "todo"
+	client := hubclient.NewThingClient(hostPort, caCertFile, clientID, credentials)
+	err = client.Start(false)
+	require.Nil(t, err)
+	time.Sleep(100 * time.Millisecond)
+
+	event := td.CreateEvent("title1", "Thing event 1")
+	client.PublishEvent(thingID1, event)
+
+	event = td.CreateEvent("title2", "Thing event 2")
+	client.PublishEvent(thingID2, event)
+
 	time.Sleep(1 * time.Second)
 	client.Stop()
 

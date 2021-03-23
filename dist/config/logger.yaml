@@ -1,0 +1,7 @@
+# WoST Thing logger config file
+
+# The folder to log into, relative to home
+logsFolder: "logs/"
+
+# The Thing IDs to log, or empty for all things
+thingIDs: []

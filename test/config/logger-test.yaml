@@ -1,7 +1,7 @@
 # example logger config file
 
-# The folder to log into
-logsFolder: "logs/"
+# The folder to log into, relative to home
+#logsFolder: "logs/"
 # Things to log, or empty for all things
 #thingIDs: ["1"]
 

@@ -12,8 +12,11 @@ import (
 var pluginConfig = &internal.WostLoggerConfig{}
 
 func main() {
-	hubConfig, err := hubconfig.SetupConfig("", internal.PluginID, pluginConfig)
-
+	hubConfig, err := hubconfig.LoadCommandlineConfig("", internal.PluginID, pluginConfig)
+	if err != nil {
+		logrus.Errorf("ERROR: Start aborted due to error")
+		os.Exit(1)
+	}
 	svc := internal.WostLogger{}
 	err = svc.Start(hubConfig, pluginConfig)
 	if err != nil {
