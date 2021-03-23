@@ -3,10 +3,14 @@ module github.com/wostzone/logger
 go 1.14
 
 require (
-	github.com/sirupsen/logrus v1.8.0
+	github.com/kr/pretty v0.1.0 // indirect
+	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	github.com/wostzone/hub v0.0.0-20210306053807-85b444047061
+	github.com/wostzone/hubapi v0.0.0-00010101000000-000000000000
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
+	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 // indirect
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )
 
 // Until Hub is stable
-replace github.com/wostzone/hub => ../hub
+replace github.com/wostzone/hubapi => ../hubapi-go

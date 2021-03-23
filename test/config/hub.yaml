@@ -2,10 +2,10 @@
 
 # Message bus server
 messenger:
-  certsFolder: "../certs" # Use TLS
-  #protocol: "smbus" # smbus, MQTT, default smbus
-  hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
-  # hostname: "localhost:9999" # do not interfere with production server
+  #certFolder: "../certs" # Use TLS
+  certFolder: "/etc/mosquitto/certs"
+  address: "localhost" # hostname:port or ip:port to listen on of message bus
+  port: 8883
 
 # Logging
 logging:
