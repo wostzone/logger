@@ -1,7 +1,6 @@
 package internal_test
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -12,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/wostzone/hubapi/pkg/certsetup"
 	"github.com/wostzone/hubapi/pkg/hubclient"
 	"github.com/wostzone/hubapi/pkg/hubconfig"
 	"github.com/wostzone/hubapi/pkg/td"
@@ -42,6 +40,7 @@ func setup() {
 	setupOnce = true
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../test")
+	// homeFolder = path.Join(cwd, "../../hub/dist")
 	loggerConfig = &internal.WostLoggerConfig{}
 	os.Args = append(os.Args[0:1], strings.Split("", " ")...)
 	hubConfig, _ = hubconfig.LoadPluginConfig(homeFolder, testPluginID, loggerConfig)
@@ -66,16 +65,13 @@ func TestStartStop(t *testing.T) {
 func TestLogTD(t *testing.T) {
 	logrus.Infof("--- TestLogTD ---")
 	thingID1 := "urn:zone1:thing1:hello"
-	clientID := "TestRecordMessage"
+	clientID := "TestLogTD"
 	setup()
 
 	svc := internal.WostLogger{}
 	err := svc.Start(hubConfig, loggerConfig)
 	// create a thing to publish with
-	hostPort := fmt.Sprintf("%s:%d", hubConfig.Messenger.Address, hubConfig.Messenger.Port)
-	caCertFile := path.Join(hubConfig.Messenger.CertFolder, certsetup.CaCertFile)
-	credentials := "todo"
-	client := hubclient.NewThingClient(hostPort, caCertFile, clientID, credentials)
+	client := hubclient.NewPluginClient(clientID, hubConfig)
 	err = client.Start(false)
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
@@ -83,7 +79,7 @@ func TestLogTD(t *testing.T) {
 	tdObj := td.CreateTD(thingID1)
 	client.PublishTD(thingID1, tdObj)
 
-	event := td.CreateEvent("title", "Thing event")
+	event := td.CreateThingEvent("event1", nil)
 	client.PublishEvent(thingID1, event)
 
 	time.Sleep(1 * time.Second)
@@ -99,25 +95,22 @@ func TestLogSpecificIDs(t *testing.T) {
 	logrus.Infof("--- TestLogSpecificIDs ---")
 	thingID1 := "urn:zone1:thing1"
 	thingID2 := "urn:zone1:thing2"
-	clientID := "TestRecordMessage"
+	clientID := "TestLogSpecificIDs"
 	setup()
 
 	svc := internal.WostLogger{}
 	loggerConfig.ThingIDs = []string{thingID2}
 	err := svc.Start(hubConfig, loggerConfig)
-	// create a thing to publish with
-	hostPort := fmt.Sprintf("%s:%d", hubConfig.Messenger.Address, hubConfig.Messenger.Port)
-	caCertFile := path.Join(hubConfig.Messenger.CertFolder, certsetup.CaCertFile)
-	credentials := "todo"
-	client := hubclient.NewThingClient(hostPort, caCertFile, clientID, credentials)
+	// create a client to publish with
+	client := hubclient.NewPluginClient(clientID, hubConfig)
 	err = client.Start(false)
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	event := td.CreateEvent("title1", "Thing event 1")
+	event := td.CreateThingEvent("event1", nil)
 	client.PublishEvent(thingID1, event)
 
-	event = td.CreateEvent("title2", "Thing event 2")
+	event = td.CreateThingEvent("event2", nil)
 	client.PublishEvent(thingID2, event)
 
 	time.Sleep(1 * time.Second)
@@ -125,6 +118,18 @@ func TestLogSpecificIDs(t *testing.T) {
 
 	assert.NoError(t, err)
 	svc.Stop()
+	teardown()
+}
+
+func TestAltLoggingFolder(t *testing.T) {
+	logrus.Infof("--- TestAltLoggingFolder ---")
+	setup()
+
+	svc := internal.WostLogger{}
+	loggerConfig.LogsFolder = "/tmp"
+	err := svc.Start(hubConfig, loggerConfig)
+	assert.Error(t, err)
+
 	teardown()
 }
 

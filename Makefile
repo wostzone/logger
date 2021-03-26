@@ -17,6 +17,10 @@ clean: ## Clean distribution files
 	rm -f $(DIST_FOLDER)/logs/*
 	rm -f $(DIST_FOLDER)/bin/*
 	rm -f $(DIST_FOLDER)/arm/*
+	rm -f ./test/certs/*
+	rm -f ./test/logs/*
+	rm -f ./test/bin/*
+	rm -f ./test/arm/*
 
 
 FORCE:

@@ -5,14 +5,14 @@ Simple logger of messages on the hub message bus, intended for testing of plugin
 
 ## Objective
 
-Facilitate the development of plugins and Things by logging messages from the hub message bus.
+Facilitate the development of Things, consumers, and plugins by logging Thing messages on the hub message bus.
 
 
 ## Status 
 
-The status of this plugin is Alpha.
+The status of this plugin is Alpha. Breakage can occur any time.
 
-Basic logging of Thing messages to file is functional.
+Basic logging of Thing messages into a Thing logfile is functional.
 
 
 ## Audience
@@ -32,7 +32,8 @@ This plugin runs as a plugin of the WoST hub. It has no additional requirements 
 
 ### Manual Installation
 
-See the Hub README on plugin installation.
+See the [Hub README](https://github.com/wostzone/hub/blob/main/README.md#plugin-installation) on plugin installation.
+
 In short: copy this plugin to the Hub bin folder and the logger.yaml config file to the Hub's config folder. Add the logger module to the list of plugins to launch on startup and restart the Hub.
 
 

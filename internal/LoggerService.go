@@ -1,8 +1,10 @@
 package internal
 
 import (
+	"encoding/json"
 	"os"
 	"path"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	hubapi "github.com/wostzone/hubapi/api"
@@ -16,6 +18,7 @@ const PluginID = "logger"
 // WostLoggerConfig with logger plugin configuration
 // map of topic -> file
 type WostLoggerConfig struct {
+	ClientID   string   `yaml:"clientID"`   // custom unique client ID of logger instance
 	LogsFolder string   `yaml:"logsFolder"` // folder to use for logging
 	ThingIDs   []string `yaml:"thingIDs"`   // thing IDs to log
 }
@@ -26,7 +29,7 @@ type WostLogger struct {
 	loggerConfig  WostLoggerConfig
 	hubConfig     *hubconfig.HubConfig
 	hubConnection hubapi.IHubClient
-	loggers       map[string]*logrus.Logger // map of thing ID to logger
+	loggers       map[string]*os.File // map of thing ID to logfile
 }
 
 // handleMessage receives and records a topic message
@@ -39,17 +42,12 @@ func (wlog *WostLogger) logToFile(thingID string, msgType string, payload []byte
 		return
 	}
 
-	// use logrus for logging
 	logger := wlog.loggers[thingID]
 	if logger == nil {
 		logsFolder := wlog.loggerConfig.LogsFolder
 		filePath := path.Join(logsFolder, thingID+".log")
 
-		logger = logrus.New()
-		logger.SetFormatter(&logrus.JSONFormatter{
-			TimestampFormat: "2006-01-02T15:04:05.000-0700",
-			PrettyPrint:     true,
-		})
+		// 	TimestampFormat: "2006-01-02T15:04:05.000-0700",
 		fileHandle, err := os.OpenFile(filePath, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0640)
 		if err != nil {
 			logrus.Errorf("Unable to open logfile for Thing: %s", filePath)
@@ -57,35 +55,49 @@ func (wlog *WostLogger) logToFile(thingID string, msgType string, payload []byte
 		} else {
 			logrus.Infof("Created logfile for Thing: %s", filePath)
 		}
-		logger.SetOutput(fileHandle)
-		wlog.loggers[thingID] = logger
+		wlog.loggers[thingID] = fileHandle
+		logger = fileHandle
 	}
-	logger.WithFields(logrus.Fields{
-		"sender":  sender,
-		"msgType": msgType,
-		"thingID": thingID,
-	}).Print(string(payload))
+	parsedMsg := make(map[string]interface{})
+	logMsg := make(map[string]interface{})
+	logMsg["receivedAt"] = time.Now().Format("2006-01-02T15:04:05.000-0700")
+	logMsg["sender"] = ""
+	logMsg["payload"] = parsedMsg
+	logMsg["thingID"] = thingID
+	logMsg["msgType"] = msgType
+	json.Unmarshal(payload, &parsedMsg)
+	pretty, _ := json.MarshalIndent(logMsg, " ", "  ")
+	prettyStr := string(pretty) + ",\n"
+	logger.WriteString(prettyStr)
 }
 
 // Start connects, subscribe and start the recording
 // loggerConfig contains the folder to log to. If it has a relative path it is wrt hub home folder
 func (wlog *WostLogger) Start(hubConfig *hubconfig.HubConfig, loggerConfig *WostLoggerConfig) error {
 	var err error
-	wlog.loggers = make(map[string]*logrus.Logger)
+	// wlog.loggers = make(map[string]*logrus.Logger)
+	wlog.loggers = make(map[string]*os.File)
 	wlog.loggerConfig = *loggerConfig
 	wlog.hubConfig = hubConfig
 
 	// verify the logging folder exists
-	if !path.IsAbs(wlog.loggerConfig.LogsFolder) {
+	if wlog.loggerConfig.LogsFolder == "" {
+		// default location is hubConfig log folder
+		hubLogFolder := path.Dir(hubConfig.Logging.LogFile)
+		wlog.loggerConfig.LogsFolder = hubLogFolder
+	} else if !path.IsAbs(wlog.loggerConfig.LogsFolder) {
 		wlog.loggerConfig.LogsFolder = path.Join(hubConfig.Home, wlog.loggerConfig.LogsFolder)
+	}
+	if wlog.loggerConfig.ClientID == "" {
+		wlog.loggerConfig.ClientID = PluginID
 	}
 	_, err = os.Stat(wlog.loggerConfig.LogsFolder)
 	if err != nil {
-		logrus.Errorf("Start: Logging folder does not exist: %s. Setup error: %s", wlog.loggerConfig.LogsFolder, err)
+		logrus.Fatalf("Start: Logging folder does not exist: %s. Setup error: %s", wlog.loggerConfig.LogsFolder, err)
 		return err
 	}
 
-	wlog.hubConnection = hubclient.NewPluginClient(PluginID, hubConfig)
+	wlog.hubConnection = hubclient.NewPluginClient(wlog.loggerConfig.ClientID, hubConfig)
 	wlog.hubConnection.Start(false)
 
 	if wlog.loggerConfig.ThingIDs == nil || len(wlog.loggerConfig.ThingIDs) == 0 {
@@ -117,7 +129,8 @@ func (wlog *WostLogger) Stop() {
 		}
 	}
 	for _, logger := range wlog.loggers {
-		logger.Out.(*os.File).Close()
+		// logger.Out.(*os.File).Close()
+		logger.Close()
 	}
 	wlog.loggers = nil
 }
