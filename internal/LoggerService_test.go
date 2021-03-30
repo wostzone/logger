@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/wostzone/hubapi/api"
 	"github.com/wostzone/hubapi/pkg/hubclient"
 	"github.com/wostzone/hubapi/pkg/hubconfig"
 	"github.com/wostzone/hubapi/pkg/td"
@@ -18,6 +19,9 @@ import (
 )
 
 var homeFolder string
+
+const zone = "test"
+const publisherID = "loggerservice"
 
 const testPluginID = "logger-test"
 const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor " +
@@ -64,7 +68,8 @@ func TestStartStop(t *testing.T) {
 // Test logging of a published TD
 func TestLogTD(t *testing.T) {
 	logrus.Infof("--- TestLogTD ---")
-	thingID1 := "urn:zone1:thing1:hello"
+	deviceID := "device1"
+	thingID1 := td.CreatePublisherThingID(zone, publisherID, deviceID, api.DeviceTypeSensor)
 	clientID := "TestLogTD"
 	setup()
 
@@ -76,7 +81,7 @@ func TestLogTD(t *testing.T) {
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	tdObj := td.CreateTD(thingID1)
+	tdObj := td.CreateTD(thingID1, api.DeviceTypeSensor)
 	client.PublishTD(thingID1, tdObj)
 
 	event := td.CreateThingEvent("event1", nil)
