@@ -1,5 +1,8 @@
 # example logger config file
 
+# Publish this service TD (default is false)
+publishTD: true
+
 # ClientID to use. Default is logger
 clientID: logger-test
 # The folder to log into, relative to home

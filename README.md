@@ -10,9 +10,7 @@ Facilitate the development of Things, consumers, and plugins by logging Thing me
 
 ## Status 
 
-The status of this plugin is Alpha. Breakage can occur any time.
-
-Basic logging of Thing messages into a Thing logfile is functional.
+The status of this plugin is Alpha. Basic logging of Thing messages is functional but breaking changes must be expected.
 
 
 ## Audience

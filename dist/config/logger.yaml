@@ -1,4 +1,9 @@
 # WoST Thing logger config file
+# clientID for connecting to the message bus and use as service ID. Default is logger.
+#clientID: "logger"
+
+# Publish this service TD (default is false)
+publishTD: true
 
 # The folder to log into, relative to home
 logsFolder: "logs/"

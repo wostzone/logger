@@ -3,7 +3,6 @@ package internal_test
 import (
 	"os"
 	"path"
-	"strings"
 	"testing"
 	"time"
 
@@ -30,24 +29,18 @@ const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
 	"velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, " +
 	"sunt in culpa qui officia deserunt mollit anim id est laborum."
 
-var loggerConfig *internal.WostLoggerConfig = &internal.WostLoggerConfig{} // use defaults
 var hubConfig *hubconfig.HubConfig
 var setupOnce = false
 
 // --- NOTE: THIS REQUIRES A RUNNING HUB ---
 
 // Use the project test folder as the home folder
-func setup() {
-	if setupOnce {
-		return
-	}
-	setupOnce = true
+func setup() *internal.LoggerService {
+	svc := internal.NewLoggerService()
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../test")
-	// homeFolder = path.Join(cwd, "../../hub/dist")
-	loggerConfig = &internal.WostLoggerConfig{}
-	os.Args = append(os.Args[0:1], strings.Split("", " ")...)
-	hubConfig, _ = hubconfig.LoadPluginConfig(homeFolder, testPluginID, loggerConfig)
+	hubConfig, _ = hubconfig.LoadPluginConfig(homeFolder, testPluginID, &svc.Config)
+	return svc
 }
 func teardown() {
 }
@@ -55,10 +48,9 @@ func teardown() {
 // Test starting and stopping of the logger service
 func TestStartStop(t *testing.T) {
 	logrus.Infof("--- TestStartStop ---")
-	setup()
 
-	svc := internal.WostLogger{}
-	err := svc.Start(hubConfig, loggerConfig)
+	svc := setup()
+	err := svc.Start(hubConfig)
 	assert.NoError(t, err)
 	svc.Stop()
 	// server.Stop()
@@ -71,10 +63,10 @@ func TestLogTD(t *testing.T) {
 	deviceID := "device1"
 	thingID1 := td.CreatePublisherThingID(zone, publisherID, deviceID, api.DeviceTypeSensor)
 	clientID := "TestLogTD"
-	setup()
 
-	svc := internal.WostLogger{}
-	err := svc.Start(hubConfig, loggerConfig)
+	svc := setup()
+	err := svc.Start(hubConfig)
+
 	// create a thing to publish with
 	client := hubclient.NewPluginClient(clientID, hubConfig)
 	err = client.Start(false)
@@ -101,11 +93,10 @@ func TestLogSpecificIDs(t *testing.T) {
 	thingID1 := "urn:zone1:thing1"
 	thingID2 := "urn:zone1:thing2"
 	clientID := "TestLogSpecificIDs"
-	setup()
 
-	svc := internal.WostLogger{}
-	loggerConfig.ThingIDs = []string{thingID2}
-	err := svc.Start(hubConfig, loggerConfig)
+	svc := setup()
+	svc.Config.ThingIDs = []string{thingID2}
+	err := svc.Start(hubConfig)
 	// create a client to publish with
 	client := hubclient.NewPluginClient(clientID, hubConfig)
 	err = client.Start(false)
@@ -128,23 +119,20 @@ func TestLogSpecificIDs(t *testing.T) {
 
 func TestAltLoggingFolder(t *testing.T) {
 	logrus.Infof("--- TestAltLoggingFolder ---")
-	setup()
 
-	svc := internal.WostLogger{}
-	loggerConfig.LogsFolder = "/tmp"
-	err := svc.Start(hubConfig, loggerConfig)
-	assert.Error(t, err)
+	svc := setup()
+	svc.Config.LogsFolder = "/tmp"
+	err := svc.Start(hubConfig)
+	assert.NoError(t, err)
 
 	teardown()
 }
 
 func TestBadLoggingFolder(t *testing.T) {
 	logrus.Infof("--- TestBadLoggingFolder ---")
-	setup()
-
-	svc := internal.WostLogger{}
-	loggerConfig.LogsFolder = "/notafolder"
-	err := svc.Start(hubConfig, loggerConfig)
+	svc := setup()
+	svc.Config.LogsFolder = "/notafolder"
+	err := svc.Start(hubConfig)
 	assert.Error(t, err)
 
 	teardown()
