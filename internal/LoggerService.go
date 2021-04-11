@@ -114,7 +114,7 @@ func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
 	}
 
 	wlog.hubConnection = hubclient.NewPluginClient(wlog.Config.ClientID, hubConfig)
-	wlog.hubConnection.Start(false)
+	wlog.hubConnection.Start()
 
 	if wlog.Config.ThingIDs == nil || len(wlog.Config.ThingIDs) == 0 {
 		// log everything

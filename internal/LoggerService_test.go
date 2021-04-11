@@ -2,6 +2,7 @@ package internal_test
 
 import (
 	"os"
+	"os/exec"
 	"path"
 	"testing"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/wostzone/hubapi/pkg/hubclient"
 	"github.com/wostzone/hubapi/pkg/hubconfig"
 	"github.com/wostzone/hubapi/pkg/td"
+	"github.com/wostzone/hubapi/pkg/testenv"
 	"github.com/wostzone/logger/internal"
 )
 
@@ -31,18 +33,23 @@ const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
 
 var hubConfig *hubconfig.HubConfig
 var setupOnce = false
+var mcmd *exec.Cmd
 
-// --- NOTE: THIS REQUIRES A RUNNING HUB ---
+// For running mosquitto in test
+const mosquittoConfigFile = "mosquitto-test.conf"
 
-// Use the project test folder as the home folder
+// Use the project test folder as the home folder and make sure the certificates exist
 func setup() *internal.LoggerService {
-	svc := internal.NewLoggerService()
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../test")
+	mcmd = testenv.Setup(homeFolder, 0)
+
+	svc := internal.NewLoggerService()
 	hubConfig, _ = hubconfig.LoadPluginConfig(homeFolder, testPluginID, &svc.Config)
 	return svc
 }
 func teardown() {
+	testenv.Teardown(mcmd)
 }
 
 // Test starting and stopping of the logger service
@@ -69,7 +76,7 @@ func TestLogTD(t *testing.T) {
 
 	// create a thing to publish with
 	client := hubclient.NewPluginClient(clientID, hubConfig)
-	err = client.Start(false)
+	err = client.Start()
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
@@ -99,7 +106,7 @@ func TestLogSpecificIDs(t *testing.T) {
 	err := svc.Start(hubConfig)
 	// create a client to publish with
 	client := hubclient.NewPluginClient(clientID, hubConfig)
-	err = client.Start(false)
+	err = client.Start()
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
