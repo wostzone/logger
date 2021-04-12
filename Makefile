@@ -1,7 +1,7 @@
 DIST_FOLDER=./dist
 .DEFAULT_GOAL := help
 
-.PHONY: help
+.PHONY: 
 
 all: logger ## Build package with binary distribution and config
 
@@ -15,6 +15,8 @@ logger:
 	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/$@ ./main.go
 	@echo "> SUCCESS. Plugin '$@' can be found at $(DIST_FOLDER)/bin/$@ and $(DIST_FOLDER)/arm/$@"
 
+test: .PHONY
+	go test ./...
 
 clean: ## Clean distribution files
 	$(GOCLEAN)

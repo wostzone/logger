@@ -3,16 +3,15 @@
 # Message bus server
 messenger:
   address: "localhost" # hostname:port or ip:port to listen on of message bus
-  port: 33100 # test port
+  clientPortMqtt: 33100
+  clientPortWS: 33101
+  pluginPortMqtt: 33102
+  pluginPortWS: 33103
 
 # Logging
 logging:
-  #logFile: "../logs/hub.log" # relative to this config file
+  #logFile: "./logs/hub.log" # relative to the app homefolder
   logLevel: "info" # debug, info, warning, error. Default is warning
 
-#configFolder: "../config" # plugin config, relative to the working directory
+#configFolder: "./config" # plugin config, relative to the working directory
 #certsFolder: "./certs" # Use TLS
-
-# Plugins to start
-plugins:
-  #- ../bin/logger
