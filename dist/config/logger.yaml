@@ -1,4 +1,5 @@
 # WoST Thing logger config file
+
 # clientID for connecting to the message bus and use as service ID. Default is logger.
 #clientID: "logger"
 
@@ -6,7 +7,7 @@
 publishTD: true
 
 # The folder to log into, relative to home
-logsFolder: "logs/"
+#logsFolder: "logs/"
 
 # The Thing IDs to log, or empty for all things
 thingIDs: []

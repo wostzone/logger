@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hubapi/pkg/hubclient"
-	"github.com/wostzone/hubapi/pkg/hubconfig"
+	"github.com/wostzone/hubapi-go/pkg/hubclient"
+	"github.com/wostzone/hubapi-go/pkg/hubconfig"
 	"github.com/wostzone/logger/internal"
 )
 

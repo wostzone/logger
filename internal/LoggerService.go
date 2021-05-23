@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hubapi/api"
-	hubapi "github.com/wostzone/hubapi/api"
-	"github.com/wostzone/hubapi/pkg/hubclient"
-	"github.com/wostzone/hubapi/pkg/hubconfig"
-	"github.com/wostzone/hubapi/pkg/td"
+	"github.com/wostzone/hubapi-go/api"
+	hubapi "github.com/wostzone/hubapi-go/api"
+	"github.com/wostzone/hubapi-go/pkg/hubclient"
+	"github.com/wostzone/hubapi-go/pkg/hubconfig"
+	"github.com/wostzone/hubapi-go/pkg/td"
 )
 
 // PluginID is the default ID of the WoST Logger plugin

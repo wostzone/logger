@@ -11,11 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/wostzone/hubapi/api"
-	"github.com/wostzone/hubapi/pkg/hubclient"
-	"github.com/wostzone/hubapi/pkg/hubconfig"
-	"github.com/wostzone/hubapi/pkg/td"
-	"github.com/wostzone/hubapi/pkg/testenv"
+	"github.com/wostzone/hubapi-go/api"
+	"github.com/wostzone/hubapi-go/pkg/hubclient"
+	"github.com/wostzone/hubapi-go/pkg/hubconfig"
+	"github.com/wostzone/hubapi-go/pkg/td"
+	"github.com/wostzone/hubapi-go/pkg/testenv"
 	"github.com/wostzone/logger/internal"
 )
 
