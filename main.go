@@ -4,9 +4,9 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hubapi-go/pkg/hubclient"
-	"github.com/wostzone/hubapi-go/pkg/hubconfig"
 	"github.com/wostzone/logger/internal"
+	"github.com/wostzone/wostlib-go/pkg/hubclient"
+	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
 func main() {

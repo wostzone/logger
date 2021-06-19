@@ -7,11 +7,10 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hubapi-go/api"
-	hubapi "github.com/wostzone/hubapi-go/api"
-	"github.com/wostzone/hubapi-go/pkg/hubclient"
-	"github.com/wostzone/hubapi-go/pkg/hubconfig"
-	"github.com/wostzone/hubapi-go/pkg/td"
+	"github.com/wostzone/wostlib-go/pkg/hubclient"
+	"github.com/wostzone/wostlib-go/pkg/hubconfig"
+	"github.com/wostzone/wostlib-go/pkg/td"
+	"github.com/wostzone/wostlib-go/wostapi"
 )
 
 // PluginID is the default ID of the WoST Logger plugin
@@ -31,7 +30,7 @@ type WostLoggerConfig struct {
 type LoggerService struct {
 	Config        WostLoggerConfig
 	hubConfig     *hubconfig.HubConfig
-	hubConnection hubapi.IHubClient
+	hubConnection wostapi.IHubClient
 	loggers       map[string]*os.File // map of thing ID to logfile
 }
 
@@ -79,12 +78,12 @@ func (wlog *LoggerService) PublishServiceTD() {
 	if !wlog.Config.PublishTD {
 		return
 	}
-	deviceType := api.DeviceTypeService
+	deviceType := wostapi.DeviceTypeService
 	thingID := td.CreatePublisherThingID(wlog.hubConfig.Zone, "hub", wlog.Config.ClientID, deviceType)
 	logrus.Infof("Publishing this service TD %s", thingID)
 	thingTD := td.CreateTD(thingID, deviceType)
 	// Include the logging folder as a property
-	prop := td.CreateProperty("Logging Folder", "Directory where to store the log files", api.PropertyTypeAttr)
+	prop := td.CreateProperty("Logging Folder", "Directory where to store the log files", wostapi.PropertyTypeAttr)
 	td.SetPropertyDataTypeString(prop, 0, 0)
 	//
 	td.AddTDProperty(thingTD, "logsFolder", prop)

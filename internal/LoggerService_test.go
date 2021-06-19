@@ -11,12 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/wostzone/hubapi-go/api"
-	"github.com/wostzone/hubapi-go/pkg/hubclient"
-	"github.com/wostzone/hubapi-go/pkg/hubconfig"
-	"github.com/wostzone/hubapi-go/pkg/td"
-	"github.com/wostzone/hubapi-go/pkg/testenv"
 	"github.com/wostzone/logger/internal"
+	"github.com/wostzone/wostlib-go/pkg/hubclient"
+	"github.com/wostzone/wostlib-go/pkg/hubconfig"
+	"github.com/wostzone/wostlib-go/pkg/td"
+	"github.com/wostzone/wostlib-go/pkg/testenv"
+	"github.com/wostzone/wostlib-go/wostapi"
 )
 
 var homeFolder string
@@ -69,7 +69,7 @@ func TestStartStop(t *testing.T) {
 func TestLogTD(t *testing.T) {
 	logrus.Infof("--- TestLogTD ---")
 	deviceID := "device1"
-	thingID1 := td.CreatePublisherThingID(zone, publisherID, deviceID, api.DeviceTypeSensor)
+	thingID1 := td.CreatePublisherThingID(zone, publisherID, deviceID, wostapi.DeviceTypeSensor)
 	clientID := "TestLogTD"
 
 	svc := internal.NewLoggerService()
@@ -82,7 +82,7 @@ func TestLogTD(t *testing.T) {
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	tdObj := td.CreateTD(thingID1, api.DeviceTypeSensor)
+	tdObj := td.CreateTD(thingID1, wostapi.DeviceTypeSensor)
 	client.PublishTD(thingID1, tdObj)
 
 	event := td.CreateThingEvent("event1", nil)
