@@ -16,7 +16,7 @@ import (
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 	"github.com/wostzone/wostlib-go/pkg/td"
 	"github.com/wostzone/wostlib-go/pkg/testenv"
-	"github.com/wostzone/wostlib-go/wostapi"
+	"github.com/wostzone/wostlib-go/pkg/vocab"
 )
 
 var homeFolder string
@@ -69,7 +69,7 @@ func TestStartStop(t *testing.T) {
 func TestLogTD(t *testing.T) {
 	logrus.Infof("--- TestLogTD ---")
 	deviceID := "device1"
-	thingID1 := td.CreatePublisherThingID(zone, publisherID, deviceID, wostapi.DeviceTypeSensor)
+	thingID1 := td.CreatePublisherThingID(zone, publisherID, deviceID, vocab.DeviceTypeSensor)
 	clientID := "TestLogTD"
 
 	svc := internal.NewLoggerService()
@@ -77,12 +77,12 @@ func TestLogTD(t *testing.T) {
 	err := svc.Start(hubConfig)
 
 	// create a thing to publish with
-	client := hubclient.NewPluginClient(clientID, hubConfig)
+	client := hubclient.NewMqttHubPluginClient(clientID, hubConfig)
 	err = client.Start()
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	tdObj := td.CreateTD(thingID1, wostapi.DeviceTypeSensor)
+	tdObj := td.CreateTD(thingID1, vocab.DeviceTypeSensor)
 	client.PublishTD(thingID1, tdObj)
 
 	event := td.CreateThingEvent("event1", nil)
@@ -107,7 +107,7 @@ func TestLogSpecificIDs(t *testing.T) {
 	svc.Config.ThingIDs = []string{thingID2}
 	err := svc.Start(hubConfig)
 	// create a client to publish with
-	client := hubclient.NewPluginClient(clientID, hubConfig)
+	client := hubclient.NewMqttHubPluginClient(clientID, hubConfig)
 	err = client.Start()
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)

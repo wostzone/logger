@@ -10,7 +10,7 @@ import (
 	"github.com/wostzone/wostlib-go/pkg/hubclient"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 	"github.com/wostzone/wostlib-go/pkg/td"
-	"github.com/wostzone/wostlib-go/wostapi"
+	"github.com/wostzone/wostlib-go/pkg/vocab"
 )
 
 // PluginID is the default ID of the WoST Logger plugin
@@ -30,7 +30,7 @@ type WostLoggerConfig struct {
 type LoggerService struct {
 	Config        WostLoggerConfig
 	hubConfig     *hubconfig.HubConfig
-	hubConnection wostapi.IHubClient
+	hubConnection *hubclient.MqttHubClient
 	loggers       map[string]*os.File // map of thing ID to logfile
 }
 
@@ -78,12 +78,12 @@ func (wlog *LoggerService) PublishServiceTD() {
 	if !wlog.Config.PublishTD {
 		return
 	}
-	deviceType := wostapi.DeviceTypeService
+	deviceType := vocab.DeviceTypeService
 	thingID := td.CreatePublisherThingID(wlog.hubConfig.Zone, "hub", wlog.Config.ClientID, deviceType)
 	logrus.Infof("Publishing this service TD %s", thingID)
 	thingTD := td.CreateTD(thingID, deviceType)
 	// Include the logging folder as a property
-	prop := td.CreateProperty("Logging Folder", "Directory where to store the log files", wostapi.PropertyTypeAttr)
+	prop := td.CreateProperty("Logging Folder", "Directory where to store the log files", vocab.PropertyTypeAttr)
 	td.SetPropertyDataTypeString(prop, 0, 0)
 	//
 	td.AddTDProperty(thingTD, "logsFolder", prop)
@@ -112,7 +112,7 @@ func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
 		return err
 	}
 
-	wlog.hubConnection = hubclient.NewPluginClient(wlog.Config.ClientID, hubConfig)
+	wlog.hubConnection = hubclient.NewMqttHubPluginClient(wlog.Config.ClientID, hubConfig)
 	wlog.hubConnection.Start()
 
 	if wlog.Config.ThingIDs == nil || len(wlog.Config.ThingIDs) == 0 {
