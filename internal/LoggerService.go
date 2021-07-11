@@ -32,6 +32,7 @@ type LoggerService struct {
 	hubConfig     *hubconfig.HubConfig
 	hubConnection *hubclient.MqttHubClient
 	loggers       map[string]*os.File // map of thing ID to logfile
+	isRunning     bool                // not intended for concurrent use
 }
 
 // handleMessage receives and records a topic message
@@ -133,11 +134,15 @@ func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
 	wlog.PublishServiceTD()
 
 	logrus.Infof("Started logger of %d topics", len(wlog.Config.ThingIDs))
+	wlog.isRunning = true
 	return err
 }
 
 // Stop the logging
 func (wlog *LoggerService) Stop() {
+	if !wlog.isRunning {
+		return
+	}
 	logrus.Info("Stopping logging service")
 	if len(wlog.Config.ThingIDs) == 0 {
 		wlog.hubConnection.Unsubscribe("")
@@ -152,6 +157,7 @@ func (wlog *LoggerService) Stop() {
 	}
 	wlog.loggers = nil
 	wlog.hubConnection.Stop()
+	wlog.isRunning = false
 }
 
 // NewLoggerService returns a new instance of the logger service
