@@ -1,17 +1,13 @@
 # Example hub configuration
 
 # Message bus server
-messenger:
-  address: "localhost" # hostname:port or ip:port to listen on of message bus
-  clientPortMqtt: 33100
-  clientPortWS: 33101
-  pluginPortMqtt: 33102
-  pluginPortWS: 33103
+mqttAddress: "localhost" # hostname:port or ip:port to listen on of message bus
+mqttCertPort: 33100
+mqttUnpwPortWS: 33101
 
 # Logging
-logging:
-  #logFile: "./logs/hub.log" # relative to the app homefolder
-  logLevel: "info" # debug, info, warning, error. Default is warning
+#logFile: "./logs/hub.log" # relative to the app homefolder
+logLevel: "info" # debug, info, warning, error. Default is warning
 
 #configFolder: "./config" # plugin config, relative to the working directory
 #certsFolder: "./certs" # Use TLS
