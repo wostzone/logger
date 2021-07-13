@@ -44,7 +44,7 @@ var mosquittoCmd *exec.Cmd
 func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../test")
-	hubConfig, _ = hubconfig.LoadHubConfig(homeFolder)
+	hubConfig, _ = hubconfig.LoadHubConfig(homeFolder, internal.PluginID)
 	configFolder = hubConfig.ConfigFolder
 
 	mosquittoCmd = testenv.Setup(homeFolder, hubConfig.MqttCertPort)
@@ -63,7 +63,7 @@ func TestStartStop(t *testing.T) {
 	logrus.Infof("--- TestStartStop ---")
 
 	svc := internal.NewLoggerService()
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
@@ -78,7 +78,7 @@ func TestLogTD(t *testing.T) {
 	clientID := "TestLogTD"
 
 	svc := internal.NewLoggerService()
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
@@ -110,7 +110,7 @@ func TestLogSpecificIDs(t *testing.T) {
 	clientID := "TestLogSpecificIDs"
 
 	svc := internal.NewLoggerService()
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 	svc.Config.ThingIDs = []string{thingID2}
 	err = svc.Start(hubConfig)
@@ -139,7 +139,7 @@ func TestAltLoggingFolder(t *testing.T) {
 	logrus.Infof("--- TestAltLoggingFolder ---")
 
 	svc := internal.NewLoggerService()
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 	svc.Config.LogsFolder = "/tmp"
 	err = svc.Start(hubConfig)
@@ -150,7 +150,7 @@ func TestAltLoggingFolder(t *testing.T) {
 func TestBadLoggingFolder(t *testing.T) {
 	logrus.Infof("--- TestBadLoggingFolder ---")
 	svc := internal.NewLoggerService()
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 	svc.Config.LogsFolder = "/notafolder"
 	err = svc.Start(hubConfig)
@@ -161,7 +161,7 @@ func TestBadLoggingFolder(t *testing.T) {
 func TestLogAfterStop(t *testing.T) {
 	logrus.Infof("--- TestLogAfterStop ---")
 	svc := internal.NewLoggerService()
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 	err = svc.Start(hubConfig)
 	assert.NoError(t, err)

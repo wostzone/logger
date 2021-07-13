@@ -10,7 +10,7 @@ install:  ## Install the plugin into ~/bin/wost/bin and config
 	cp -n dist/config/* ~/bin/wost/config/
 
 logger:
-	go build -o $(DIST_FOLDER)/bin/$@ ./main.go
+	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/logger/main.go
 	@echo "> SUCCESS. Plugin '$@' can be found at $(DIST_FOLDER)/bin/$@"
 
 test: .PHONY
