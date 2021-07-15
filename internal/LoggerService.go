@@ -102,8 +102,7 @@ func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
 	// verify the logging folder exists
 	if wlog.Config.LogsFolder == "" {
 		// default location is hubConfig log folder
-		hubLogFolder := path.Dir(hubConfig.LogFile)
-		wlog.Config.LogsFolder = hubLogFolder
+		wlog.Config.LogsFolder = wlog.hubConfig.LogFolder
 	} else if !path.IsAbs(wlog.Config.LogsFolder) {
 		wlog.Config.LogsFolder = path.Join(hubConfig.Home, wlog.Config.LogsFolder)
 	}
