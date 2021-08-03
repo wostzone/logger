@@ -17,8 +17,8 @@ test: .PHONY
 	go test ./...
 
 clean: ## Clean distribution files
-	go clean
 	go mod tidy
+	go clean
 	rm -f $(DIST_FOLDER)/certs/*
 	rm -f $(DIST_FOLDER)/logs/*
 	rm -f $(DIST_FOLDER)/bin/*
