@@ -26,18 +26,15 @@ const zone = "test"
 const publisherID = "loggerservice"
 const testPluginID = "logger-test"
 
-const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor " +
-	"incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco " +
-	"laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate " +
-	"velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, " +
-	"sunt in culpa qui officia deserunt mollit anim id est laborum."
+// const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor " +
+// 	"incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco " +
+// 	"laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate " +
+// 	"velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, " +
+// 	"sunt in culpa qui officia deserunt mollit anim id est laborum."
 
 var hubConfig *hubconfig.HubConfig
-var setupOnce = false
-var mosquittoCmd *exec.Cmd
 
-// For running mosquitto in test
-// const mosquittoConfigFile = "mosquitto-test.conf"
+var mosquittoCmd *exec.Cmd
 
 // TestMain run mosquitto and use the project test folder as the home folder.
 // Make sure the certificates exist.
@@ -85,7 +82,7 @@ func TestLogTD(t *testing.T) {
 
 	// create a thing to publish with
 	client := hubclient.NewMqttHubPluginClient(clientID, hubConfig)
-	err = client.Start()
+	err = client.Connect()
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
@@ -96,7 +93,7 @@ func TestLogTD(t *testing.T) {
 	client.PublishEvent(thingID1, event)
 
 	time.Sleep(1 * time.Second)
-	client.Stop()
+	client.Close()
 
 	assert.NoError(t, err)
 	svc.Stop()
@@ -118,7 +115,7 @@ func TestLogSpecificIDs(t *testing.T) {
 
 	// create a client to publish with
 	client := hubclient.NewMqttHubPluginClient(clientID, hubConfig)
-	err = client.Start()
+	err = client.Connect()
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 
@@ -129,7 +126,7 @@ func TestLogSpecificIDs(t *testing.T) {
 	client.PublishEvent(thingID2, event)
 
 	time.Sleep(1 * time.Second)
-	client.Stop()
+	client.Close()
 
 	assert.NoError(t, err)
 	svc.Stop()

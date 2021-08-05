@@ -113,7 +113,7 @@ func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
 	}
 
 	wlog.hubConnection = hubclient.NewMqttHubPluginClient(wlog.Config.ClientID, hubConfig)
-	wlog.hubConnection.Start()
+	wlog.hubConnection.Connect()
 
 	if wlog.Config.ThingIDs == nil || len(wlog.Config.ThingIDs) == 0 {
 		// log everything
@@ -155,7 +155,7 @@ func (wlog *LoggerService) Stop() {
 		logger.Close()
 	}
 	wlog.loggers = nil
-	wlog.hubConnection.Stop()
+	wlog.hubConnection.Close()
 	wlog.isRunning = false
 }
 

@@ -5,7 +5,7 @@ DIST_FOLDER=./dist
 
 all: logger ## Build package with binary distribution and config
 
-install:  ## Install the plugin into ~/bin/wost/bin and config
+install: all ## Install the plugin into ~/bin/wost/bin and config
 	cp dist/bin/* ~/bin/wost/bin/
 	cp -n dist/config/* ~/bin/wost/config/
 
