@@ -41,7 +41,7 @@ var mosquittoCmd *exec.Cmd
 func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../test")
-	hubConfig, _ = hubconfig.LoadHubConfig(homeFolder, internal.PluginID)
+	hubConfig, _ = hubconfig.LoadHubConfig("", homeFolder, internal.PluginID)
 	configFolder = hubConfig.ConfigFolder
 
 	mosquittoCmd = testenv.Setup(homeFolder, hubConfig.MqttCertPort)
