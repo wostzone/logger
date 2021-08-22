@@ -43,6 +43,8 @@ func TestMain(m *testing.M) {
 	homeFolder = path.Join(cwd, "../test")
 	hubConfig, _ = hubconfig.LoadHubConfig("", homeFolder, internal.PluginID)
 	configFolder = hubConfig.ConfigFolder
+	logFileName := path.Join(hubConfig.LogFolder, testPluginID+".log")
+	hubconfig.SetLogging(hubConfig.Loglevel, logFileName)
 
 	mosquittoCmd = testenv.Setup(homeFolder, hubConfig.MqttCertPort)
 	if mosquittoCmd == nil {
@@ -164,5 +166,4 @@ func TestLogAfterStop(t *testing.T) {
 	assert.NoError(t, err)
 
 	svc.Stop()
-	svc.PublishServiceTD()
 }

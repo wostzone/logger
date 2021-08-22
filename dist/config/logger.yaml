@@ -3,11 +3,11 @@
 # clientID for connecting to the message bus and use as service ID. Default is logger.
 #clientID: "logger"
 
-# Publish this service TD (default is false)
-publishTD: true
+# Publish the TD of this service (default is false)
+#publishTD: false
 
 # The folder to log into, relative to home
 #logsFolder: "logs/"
 
 # The Thing IDs to log, or empty for all things
-thingIDs: []
+#thingIDs: []
