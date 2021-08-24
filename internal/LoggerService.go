@@ -102,7 +102,7 @@ func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
 	// verify the logging folder exists
 	if wlog.Config.LogsFolder == "" {
 		// default location is hubConfig log folder
-		wlog.Config.LogsFolder = wlog.hubConfig.LogFolder
+		wlog.Config.LogsFolder = wlog.hubConfig.LogsFolder
 	} else if !path.IsAbs(wlog.Config.LogsFolder) {
 		wlog.Config.LogsFolder = path.Join(hubConfig.Home, wlog.Config.LogsFolder)
 	}
@@ -112,8 +112,12 @@ func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
 		return err
 	}
 
+	// connect the the message bus to receive messages
 	wlog.hubConnection = hubclient.NewMqttHubPluginClient(wlog.Config.ClientID, hubConfig)
-	wlog.hubConnection.Connect()
+	err = wlog.hubConnection.Connect()
+	if err != nil {
+		return err
+	}
 
 	if wlog.Config.ThingIDs == nil || len(wlog.Config.ThingIDs) == 0 {
 		// log everything

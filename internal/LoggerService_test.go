@@ -43,10 +43,10 @@ func TestMain(m *testing.M) {
 	homeFolder = path.Join(cwd, "../test")
 	hubConfig, _ = hubconfig.LoadHubConfig("", homeFolder, internal.PluginID)
 	configFolder = hubConfig.ConfigFolder
-	logFileName := path.Join(hubConfig.LogFolder, testPluginID+".log")
+	logFileName := path.Join(hubConfig.LogsFolder, testPluginID+".log")
 	hubconfig.SetLogging(hubConfig.Loglevel, logFileName)
 
-	mosquittoCmd = testenv.Setup(homeFolder, hubConfig.MqttCertPort)
+	mosquittoCmd = testenv.Setup(homeFolder, hubConfig.MqttPortCert, hubConfig.MqttPortWS)
 	if mosquittoCmd == nil {
 		logrus.Fatalf("Unable to setup mosquitto")
 	}
