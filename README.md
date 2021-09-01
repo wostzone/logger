@@ -1,5 +1,17 @@
 # WoST Hub Logger
 
+This is being changed into a general purpose event logger:
+* configurable as to what events to log
+  * configuration changes
+  * actions
+  * adding/removing users
+  * password changes
+  * auth failure
+* configure the topics to log
+* include sender ID, timestamp
+* content template to remove sensitive data
+
+
 Simple logger of messages on the hub message bus, intended for testing of plugins and things.
 
 
