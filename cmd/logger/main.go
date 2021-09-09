@@ -4,9 +4,9 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
+	"github.com/wostzone/hubserve-go/pkg/hubconfig"
+	"github.com/wostzone/hubserve-go/pkg/proc"
 	"github.com/wostzone/logger/internal"
-	"github.com/wostzone/wostlib-go/pkg/hubclient"
-	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 		logrus.Errorf("Logger: Failed to start")
 		os.Exit(1)
 	}
-	hubclient.WaitForSignal()
+	proc.WaitForSignal()
 	svc.Stop()
 	os.Exit(0)
 }

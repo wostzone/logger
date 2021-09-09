@@ -1,16 +1,20 @@
 package internal
 
 import (
+	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path"
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/wostlib-go/pkg/hubclient"
-	"github.com/wostzone/wostlib-go/pkg/hubconfig"
-	"github.com/wostzone/wostlib-go/pkg/td"
-	"github.com/wostzone/wostlib-go/pkg/vocab"
+	"github.com/wostzone/hubclient-go/pkg/certs"
+	"github.com/wostzone/hubclient-go/pkg/mqttclient"
+	"github.com/wostzone/hubclient-go/pkg/td"
+	"github.com/wostzone/hubclient-go/pkg/vocab"
+	"github.com/wostzone/hubserve-go/pkg/certsetup"
+	"github.com/wostzone/hubserve-go/pkg/hubconfig"
 )
 
 // PluginID is the default ID of the WoST Logger plugin
@@ -30,7 +34,7 @@ type WostLoggerConfig struct {
 type LoggerService struct {
 	Config        WostLoggerConfig
 	hubConfig     *hubconfig.HubConfig
-	hubConnection *hubclient.MqttHubClient
+	hubConnection *mqttclient.MqttHubClient
 	loggers       map[string]*os.File // map of thing ID to logfile
 	isRunning     bool                // not intended for concurrent use
 }
@@ -95,6 +99,7 @@ func (wlog *LoggerService) PublishServiceTD() {
 // Start connects, subscribe and start the recording
 func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
 	var err error
+	var pluginCert *tls.Certificate
 	// wlog.loggers = make(map[string]*logrus.Logger)
 	wlog.loggers = make(map[string]*os.File)
 	wlog.hubConfig = hubConfig
@@ -113,8 +118,21 @@ func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
 	}
 
 	// connect the the message bus to receive messages
-	wlog.hubConnection = hubclient.NewMqttHubPluginClient(wlog.Config.ClientID, hubConfig)
-	err = wlog.hubConnection.Connect()
+	caCertPath := path.Join(hubConfig.CertsFolder, certsetup.CaCertFile)
+	caCert, err := certs.LoadX509CertFromPEM(caCertPath)
+	if err == nil {
+		pluginCert, err = certs.LoadTLSCertFromPEM(
+			path.Join(hubConfig.CertsFolder, certsetup.PluginCertFile),
+			path.Join(hubConfig.CertsFolder, certsetup.PluginKeyFile),
+		)
+	}
+	if err != nil {
+		logrus.Errorf("Start: Error loading certificate: %s", err)
+		return err
+	}
+	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, hubConfig.MqttPortCert)
+	wlog.hubConnection = mqttclient.NewMqttHubClient(wlog.Config.ClientID, caCert)
+	err = wlog.hubConnection.ConnectWithClientCert(hostPort, pluginCert)
 	if err != nil {
 		return err
 	}

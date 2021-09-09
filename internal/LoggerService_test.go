@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path"
@@ -11,12 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/wostzone/hubclient-go/pkg/mqttclient"
+	"github.com/wostzone/hubclient-go/pkg/td"
+	"github.com/wostzone/hubclient-go/pkg/testenv"
+	"github.com/wostzone/hubclient-go/pkg/vocab"
+	"github.com/wostzone/hubserve-go/pkg/hubconfig"
 	"github.com/wostzone/logger/internal"
-	"github.com/wostzone/wostlib-go/pkg/hubclient"
-	"github.com/wostzone/wostlib-go/pkg/hubconfig"
-	"github.com/wostzone/wostlib-go/pkg/td"
-	"github.com/wostzone/wostlib-go/pkg/testenv"
-	"github.com/wostzone/wostlib-go/pkg/vocab"
 )
 
 var homeFolder string
@@ -25,6 +26,8 @@ var configFolder string
 const zone = "test"
 const publisherID = "loggerservice"
 const testPluginID = "logger-test"
+
+var testCerts testenv.TestCerts
 
 // const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor " +
 // 	"incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco " +
@@ -43,10 +46,11 @@ func TestMain(m *testing.M) {
 	homeFolder = path.Join(cwd, "../test")
 	hubConfig, _ = hubconfig.LoadHubConfig("", homeFolder, internal.PluginID)
 	configFolder = hubConfig.ConfigFolder
+	certFolder := hubConfig.CertsFolder
 	logFileName := path.Join(hubConfig.LogsFolder, testPluginID+".log")
 	hubconfig.SetLogging(hubConfig.Loglevel, logFileName)
-
-	mosquittoCmd = testenv.Setup(homeFolder, hubConfig.MqttPortCert, hubConfig.MqttPortWS)
+	testCerts = testenv.CreateCertBundle()
+	mosquittoCmd, _ = testenv.StartMosquitto(configFolder, certFolder, &testCerts)
 	if mosquittoCmd == nil {
 		logrus.Fatalf("Unable to setup mosquitto")
 	}
@@ -62,6 +66,7 @@ func TestStartStop(t *testing.T) {
 	logrus.Infof("--- TestStartStop ---")
 
 	svc := internal.NewLoggerService()
+	svc.Config.PublishTD = true
 	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 	err = svc.Start(hubConfig)
@@ -82,12 +87,13 @@ func TestLogTD(t *testing.T) {
 	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
 
-	// create a thing to publish with
-	client := hubclient.NewMqttHubPluginClient(clientID, hubConfig)
-	err = client.Connect()
+	client := mqttclient.NewMqttHubClient(clientID, testCerts.CaCert)
+	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, testenv.MqttPortCert)
+	err = client.ConnectWithClientCert(hostPort, testCerts.PluginCert)
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
+	// create a thing to publish with
 	tdObj := td.CreateTD(thingID1, vocab.DeviceTypeSensor)
 	client.PublishTD(thingID1, tdObj)
 
@@ -116,8 +122,9 @@ func TestLogSpecificIDs(t *testing.T) {
 	assert.NoError(t, err)
 
 	// create a client to publish with
-	client := hubclient.NewMqttHubPluginClient(clientID, hubConfig)
-	err = client.Connect()
+	client := mqttclient.NewMqttHubClient(clientID, testCerts.CaCert)
+	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, testenv.MqttPortCert)
+	err = client.ConnectWithClientCert(hostPort, testCerts.PluginCert)
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 
