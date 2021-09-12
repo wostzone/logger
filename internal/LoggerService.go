@@ -10,11 +10,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hubclient-go/pkg/certs"
+	"github.com/wostzone/hubclient-go/pkg/config"
 	"github.com/wostzone/hubclient-go/pkg/mqttclient"
 	"github.com/wostzone/hubclient-go/pkg/td"
 	"github.com/wostzone/hubclient-go/pkg/vocab"
-	"github.com/wostzone/hubserve-go/pkg/certsetup"
-	"github.com/wostzone/hubserve-go/pkg/hubconfig"
 )
 
 // PluginID is the default ID of the WoST Logger plugin
@@ -33,7 +32,7 @@ type WostLoggerConfig struct {
 // By default it logs messages by ThingID, eg each Thing has a log file
 type LoggerService struct {
 	Config        WostLoggerConfig
-	hubConfig     *hubconfig.HubConfig
+	hubConfig     *config.HubConfig
 	hubConnection *mqttclient.MqttHubClient
 	loggers       map[string]*os.File // map of thing ID to logfile
 	isRunning     bool                // not intended for concurrent use
@@ -97,7 +96,7 @@ func (wlog *LoggerService) PublishServiceTD() {
 }
 
 // Start connects, subscribe and start the recording
-func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
+func (wlog *LoggerService) Start(hubConfig *config.HubConfig) error {
 	var err error
 	var pluginCert *tls.Certificate
 	// wlog.loggers = make(map[string]*logrus.Logger)
@@ -109,7 +108,7 @@ func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
 		// default location is hubConfig log folder
 		wlog.Config.LogsFolder = wlog.hubConfig.LogsFolder
 	} else if !path.IsAbs(wlog.Config.LogsFolder) {
-		wlog.Config.LogsFolder = path.Join(hubConfig.Home, wlog.Config.LogsFolder)
+		wlog.Config.LogsFolder = path.Join(hubConfig.AppFolder, wlog.Config.LogsFolder)
 	}
 	_, err = os.Stat(wlog.Config.LogsFolder)
 	if err != nil {
@@ -118,12 +117,12 @@ func (wlog *LoggerService) Start(hubConfig *hubconfig.HubConfig) error {
 	}
 
 	// connect the the message bus to receive messages
-	caCertPath := path.Join(hubConfig.CertsFolder, certsetup.CaCertFile)
+	caCertPath := path.Join(hubConfig.CertsFolder, config.DefaultCaCertFile)
 	caCert, err := certs.LoadX509CertFromPEM(caCertPath)
 	if err == nil {
 		pluginCert, err = certs.LoadTLSCertFromPEM(
-			path.Join(hubConfig.CertsFolder, certsetup.PluginCertFile),
-			path.Join(hubConfig.CertsFolder, certsetup.PluginKeyFile),
+			path.Join(hubConfig.CertsFolder, config.DefaultPluginCertFile),
+			path.Join(hubConfig.CertsFolder, config.DefaultPluginKeyFile),
 		)
 	}
 	if err != nil {

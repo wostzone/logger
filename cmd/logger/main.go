@@ -4,14 +4,14 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hubserve-go/pkg/hubconfig"
+	"github.com/wostzone/hubclient-go/pkg/config"
 	"github.com/wostzone/hubserve-go/pkg/proc"
 	"github.com/wostzone/logger/internal"
 )
 
 func main() {
 	svc := internal.NewLoggerService()
-	hubConfig, err := hubconfig.LoadCommandlineConfig("", internal.PluginID, &svc.Config)
+	hubConfig, err := config.LoadAllConfig(os.Args, "", internal.PluginID, &svc.Config)
 	if err != nil {
 		logrus.Errorf("ERROR: Start aborted due to error")
 		os.Exit(1)

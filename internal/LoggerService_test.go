@@ -12,16 +12,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/wostzone/hubclient-go/pkg/config"
 	"github.com/wostzone/hubclient-go/pkg/mqttclient"
 	"github.com/wostzone/hubclient-go/pkg/td"
 	"github.com/wostzone/hubclient-go/pkg/testenv"
 	"github.com/wostzone/hubclient-go/pkg/vocab"
-	"github.com/wostzone/hubserve-go/pkg/hubconfig"
 	"github.com/wostzone/logger/internal"
 )
 
 var homeFolder string
-var configFolder string
 
 const zone = "test"
 const publisherID = "loggerservice"
@@ -35,7 +34,7 @@ var testCerts testenv.TestCerts
 // 	"velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, " +
 // 	"sunt in culpa qui officia deserunt mollit anim id est laborum."
 
-var hubConfig *hubconfig.HubConfig
+var hubConfig *config.HubConfig
 
 var mosquittoCmd *exec.Cmd
 
@@ -44,13 +43,14 @@ var mosquittoCmd *exec.Cmd
 func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../test")
-	hubConfig, _ = hubconfig.LoadHubConfig("", homeFolder, internal.PluginID)
-	configFolder = hubConfig.ConfigFolder
-	certFolder := hubConfig.CertsFolder
-	logFileName := path.Join(hubConfig.LogsFolder, testPluginID+".log")
-	hubconfig.SetLogging(hubConfig.Loglevel, logFileName)
+
+	hubConfig = config.CreateDefaultHubConfig(homeFolder)
+	config.LoadHubConfig("", testPluginID, hubConfig)
+
 	testCerts = testenv.CreateCertBundle()
-	mosquittoCmd, _ = testenv.StartMosquitto(configFolder, certFolder, &testCerts)
+	testenv.SaveCerts(&testCerts, hubConfig.CertsFolder)
+
+	mosquittoCmd, _ = testenv.StartMosquitto(hubConfig.ConfigFolder, hubConfig.CertsFolder, &testCerts)
 	if mosquittoCmd == nil {
 		logrus.Fatalf("Unable to setup mosquitto")
 	}
@@ -67,7 +67,7 @@ func TestStartStop(t *testing.T) {
 
 	svc := internal.NewLoggerService()
 	svc.Config.PublishTD = true
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
+	hubConfig, err := config.LoadAllConfig(nil, homeFolder, testPluginID, &svc.Config)
 	assert.NoError(t, err)
 	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
@@ -82,14 +82,14 @@ func TestLogTD(t *testing.T) {
 	clientID := "TestLogTD"
 
 	svc := internal.NewLoggerService()
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
+	hubConfig, err := config.LoadAllConfig(nil, homeFolder, testPluginID, &svc.Config)
 	assert.NoError(t, err)
 	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
 
 	client := mqttclient.NewMqttHubClient(clientID, testCerts.CaCert)
 	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, testenv.MqttPortCert)
-	err = client.ConnectWithClientCert(hostPort, testCerts.PluginCert)
+	err = client.ConnectWithClientCert(hostPort, hubConfig.PluginCert)
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
@@ -115,7 +115,7 @@ func TestLogSpecificIDs(t *testing.T) {
 	clientID := "TestLogSpecificIDs"
 
 	svc := internal.NewLoggerService()
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
+	hubConfig, err := config.LoadAllConfig(nil, homeFolder, testPluginID, &svc.Config)
 	assert.NoError(t, err)
 	svc.Config.ThingIDs = []string{thingID2}
 	err = svc.Start(hubConfig)
@@ -124,7 +124,7 @@ func TestLogSpecificIDs(t *testing.T) {
 	// create a client to publish with
 	client := mqttclient.NewMqttHubClient(clientID, testCerts.CaCert)
 	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, testenv.MqttPortCert)
-	err = client.ConnectWithClientCert(hostPort, testCerts.PluginCert)
+	err = client.ConnectWithClientCert(hostPort, hubConfig.PluginCert)
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 
@@ -145,7 +145,7 @@ func TestAltLoggingFolder(t *testing.T) {
 	logrus.Infof("--- TestAltLoggingFolder ---")
 
 	svc := internal.NewLoggerService()
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
+	hubConfig, err := config.LoadAllConfig(nil, homeFolder, testPluginID, &svc.Config)
 	assert.NoError(t, err)
 	svc.Config.LogsFolder = "/tmp"
 	err = svc.Start(hubConfig)
@@ -156,7 +156,7 @@ func TestAltLoggingFolder(t *testing.T) {
 func TestBadLoggingFolder(t *testing.T) {
 	logrus.Infof("--- TestBadLoggingFolder ---")
 	svc := internal.NewLoggerService()
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
+	hubConfig, err := config.LoadAllConfig(nil, homeFolder, testPluginID, &svc.Config)
 	assert.NoError(t, err)
 	svc.Config.LogsFolder = "/notafolder"
 	err = svc.Start(hubConfig)
@@ -167,7 +167,7 @@ func TestBadLoggingFolder(t *testing.T) {
 func TestLogAfterStop(t *testing.T) {
 	logrus.Infof("--- TestLogAfterStop ---")
 	svc := internal.NewLoggerService()
-	err := hubconfig.LoadPluginConfig(configFolder, testPluginID, &svc.Config, nil)
+	hubConfig, err := config.LoadAllConfig(nil, homeFolder, testPluginID, &svc.Config)
 	assert.NoError(t, err)
 	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
