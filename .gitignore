@@ -21,5 +21,3 @@ dist/certs/*
 dist/bin/*
 test/logs/*
 test/config/*.conf
-*.crt
-*.key
